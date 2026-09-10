@@ -70,12 +70,13 @@ in
 
   home.file.".hammerspoon".source = liveLink "home/.hammerspoon";
 
-  home.activation.reloadSkhd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -f "$HOME/Library/LaunchAgents/org.nixos.skhd.plist" ]; then
-      if ! $DRY_RUN_CMD /bin/launchctl kickstart -k "gui/$(id -u)/org.nixos.skhd"; then
-        echo "warning: skhd reload failed" >&2
-      fi
-    fi
+  # Must run after linkGeneration: both this and linkGeneration sit after
+  # writeBoundary with no ordering between them, so reloading first would signal
+  # skhd while ~/.config/skhd is mid-swap, making it exit EX_CONFIG. Signal
+  # rather than "launchctl kickstart -k", which blocks forever once the agent is
+  # throttled in "spawn scheduled" and wedges the whole rebuild.
+  home.activation.reloadSkhd = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    $DRY_RUN_CMD /usr/bin/pkill -USR1 -x skhd || true
   '';
 
   home.activation.screenshotsDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

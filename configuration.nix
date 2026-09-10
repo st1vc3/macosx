@@ -103,6 +103,7 @@
       "font-hack-nerd-font"
       "desktoppr"
       "tailscale-app"
+      "onlyoffice"
     ] ++ lib.optionals workMachine [
       "webex"
       "microsoft-teams"
