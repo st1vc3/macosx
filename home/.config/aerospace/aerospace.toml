@@ -79,4 +79,8 @@ run = ['layout tiling', 'move-node-to-workspace C']
 if.app-id = 'com.apple.finder'
 run = 'move-node-to-workspace F'
 
+[[on-window-detected]]
+if.app-id = 'com.smallindiedev.opbounty'
+run = 'layout floating'
+
 [mode.main.binding]
