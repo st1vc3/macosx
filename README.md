@@ -29,7 +29,7 @@ The same split applies to the user environment. `home.nix` imports `modules/home
 
 The macOS account each host builds for comes from the private `dotfiles-private` flake input, so no account name appears in this repository. Evaluation still stays pure, because a flake input is fetched like any other dependency; only the input's URL and revision are recorded in `flake.lock`.
 
-`bootstrap.sh` and `rebuild.sh` ask the flake which host owns the current account, so neither takes an argument in normal use. Pass one to override:
+`bootstrap.sh`, `rebuild.sh`, and `upgrade.sh` ask the flake which host owns the current account, so none of them takes an argument in normal use. Pass one to override:
 
 ```sh
 ./rebuild.sh work
@@ -78,6 +78,22 @@ After changing system or Home Manager configuration, apply it with:
 ./rebuild.sh
 ```
 
+That builds from the versions already pinned in `flake.lock` and leaves them alone, so it is reproducible: running it a year from now installs exactly what it installs today. It also never upgrades Homebrew packages, because `homebrew.onActivation.upgrade` is off in `hosts/common.nix`; activation installs what is declared and missing, and `cleanup = "zap"` removes what is undeclared, but installed versions stay put.
+
+Moving those versions forward is a separate, explicit step:
+
+```sh
+./upgrade.sh
+```
+
+`upgrade.sh` runs `nix flake update`, activates the result through `rebuild.sh`, then runs `brew update` and `brew upgrade`. The system build deliberately happens before Homebrew, so a bad input bump fails while the machine is still entirely on its old versions and only `flake.lock` has changed, which one `git checkout` undoes.
+
+The resulting `flake.lock` diff is left uncommitted on purpose. Review and commit it, or the next `rebuild.sh` will not reproduce what is actually installed.
+
+Pass `--gc` to delete generations and store paths older than 30 days once the new system is live, or `--gc DAYS` to pick the cutoff. Garbage collection runs after the switch, so the generation just activated is current and is never collected.
+
+Both scripts are also shell functions, `rebuild` and `upgrade`, defined in `modules/home/shell.nix`. They run from any directory and `rehash` afterwards so newly installed binaries are on `PATH` immediately. `generations` lists the system generations and `rollback_system` switches back to the previous one.
+
 Files under `home/` are linked directly into the home directory. Changes to those linked files usually take effect immediately and do not require a rebuild.
 
 ## Validation
@@ -98,7 +114,7 @@ nix develop .#ci --command statix check .
 nix develop .#ci --command deadnix --fail $(git ls-files '*.nix')
 nix develop .#ci --command stylua --check $(git ls-files '*.lua')
 nix develop .#ci --command luacheck $(git ls-files '*.lua')
-nix develop .#ci --command shellcheck -x bootstrap.sh rebuild.sh check-skhd.sh vpn.sh host.sh jenkins-work-pull.sh
+nix develop .#ci --command shellcheck -x bootstrap.sh rebuild.sh upgrade.sh check-skhd.sh vpn.sh host.sh jenkins-work-pull.sh
 ```
 
 Nix files are formatted with `nixfmt` and Lua with `stylua`; both are enforced, so run them without `--check` to fix. `statix`'s `repeated_keys` rule is disabled in `statix.toml` because it conflicts with the dotted-option style nix-darwin and Home Manager use.
@@ -140,7 +156,7 @@ Hold Option+Escape for 250 ms to show the complete shortcut reference. Release e
 | left Option+1..4/B/C | Switch workspace |
 | left Option+Shift+1..4/B/C | Move the current window to a workspace |
 | left Option+Tab | Return to the previous workspace |
-| left Option+F | Toggle fullscreen |
+| left Option+F | Toggle fullscreen without outer gaps |
 | left Option+R | Flatten the current layout |
 | Control+left Option+H/J/K/L | Join with a neighboring window |
 | Control+left Option+Backspace | Close every window except the current one |
@@ -150,6 +166,8 @@ Hold Option+Escape for 250 ms to show the complete shortcut reference. Release e
 | Command+Shift+5 | Open macOS capture controls |
 
 Command+Shift+3 and Command+Shift+4 are skhd bindings that replace the macOS defaults, so both capture a region rather than the full screen.
+
+left Option+F passes `--no-outer-gaps`. Without it a window that is alone on its workspace keeps the same frame fullscreen as tiled, because a lone tiled window already fills the monitor minus the outer gaps, so the toggle has no visible effect.
 
 The authoritative shortcut definitions are in `home/.config/skhd/skhdrc`. Window rules are in `home/.config/aerospace/aerospace.toml`.
 
@@ -215,7 +233,8 @@ also repairs DNS after openconnect has already died on its own.
 | `patches/` | Checked patches for pinned upstream sources |
 | `host.sh` | Account to host mapping, sourced by the scripts |
 | `bootstrap.sh` | First installation |
-| `rebuild.sh` | Subsequent system activation |
+| `rebuild.sh` | Subsequent system activation from the current pins |
+| `upgrade.sh` | Moves the pins and Homebrew packages forward, then activates |
 | `check-skhd.sh` | skhd health and permission check |
 | `vpn.sh` | GlobalProtect VPN client over openconnect (work host only) |
 | `jenkins-work-pull.sh` | Jenkins workspace refresh behind `jwp` (work host only) |

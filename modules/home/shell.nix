@@ -64,6 +64,12 @@
         "$HOME/.dotfiles/rebuild.sh" || return
         rehash
       }
+      # rebuild applies the pins already in flake.lock; upgrade is the explicit
+      # step that moves those pins and the Homebrew packages forward.
+      upgrade() {
+        "$HOME/.dotfiles/upgrade.sh" "$@" || return
+        rehash
+      }
       # The remote host is machine-specific, so it lives in the untracked .env
       # rather than in the repository; see .env.example.
       #

@@ -39,7 +39,7 @@ lalt - 0x2B : /opt/homebrew/bin/aerospace layout accordion horizontal vertical
 lalt - 0x1B : /opt/homebrew/bin/aerospace resize smart -50
 lalt - 0x18 : /opt/homebrew/bin/aerospace resize smart +50
 
-lalt - f : /opt/homebrew/bin/aerospace fullscreen
+lalt - f : /opt/homebrew/bin/aerospace fullscreen --no-outer-gaps
 lalt - r : /opt/homebrew/bin/aerospace flatten-workspace-tree
 ctrl + lalt - backspace : /opt/homebrew/bin/aerospace close-all-windows-but-current
 ctrl + lalt - h : /opt/homebrew/bin/aerospace join-with left
