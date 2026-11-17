@@ -89,9 +89,13 @@ in
 
   home.file.".hammerspoon".source = liveLink "home/.hammerspoon";
 
+  # Restart via SIGTERM and let KeepAlive respawn it. `kickstart -k` waits for
+  # the new process, so it hangs activation forever when launchd cannot spawn
+  # the job. A dead skhd is left to check-skhd.sh, which reloads the job.
   home.activation.reloadSkhd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -f "$HOME/Library/LaunchAgents/org.nixos.skhd.plist" ]; then
-      if ! $DRY_RUN_CMD /bin/launchctl kickstart -k "gui/$(id -u)/org.nixos.skhd"; then
+    skhdService="gui/$(id -u)/org.nixos.skhd"
+    if /bin/launchctl print "$skhdService" 2>/dev/null | /usr/bin/grep -q "pid = "; then
+      if ! $DRY_RUN_CMD /bin/launchctl kill SIGTERM "$skhdService"; then
         echo "warning: skhd reload failed" >&2
       fi
     fi

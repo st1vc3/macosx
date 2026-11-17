@@ -12,5 +12,6 @@ _:
     "microsoft-teams"
     "webex"
     "signal"
+    "windows-app"
   ];
 }

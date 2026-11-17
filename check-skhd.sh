@@ -13,7 +13,7 @@ fi
 
 SKHD_BIN="$(plutil -extract ProgramArguments.0 raw -o - "$PLIST")"
 
-# Home Manager's reloadSkhd activation kickstarts the service just before this
+# Home Manager's reloadSkhd activation restarts the service just before this
 # script runs, so a freshly restarted skhd may not have a pid yet. Poll instead
 # of sampling once, otherwise a healthy service reads as dead.
 skhd_running() {
