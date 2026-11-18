@@ -72,6 +72,26 @@ After changing system or Home Manager configuration, apply it with:
 ./rebuild.sh
 ```
 
+That builds from the versions already pinned in `flake.lock` and leaves them alone, so it is reproducible. It also never upgrades Homebrew packages, because `homebrew.onActivation.upgrade` is off in `configuration.nix`; activation installs what is declared and missing, and `cleanup = "zap"` removes what is undeclared, but installed versions stay put.
+
+Moving those versions forward is a separate, explicit step:
+
+```sh
+./upgrade.sh
+```
+
+`upgrade.sh` runs `nix flake update`, activates the result through `rebuild.sh`, runs `brew update` and `brew upgrade`, and finally installs pending macOS updates with `softwareupdate`. The system build deliberately happens before Homebrew, so a bad input bump fails while the machine is still entirely on its old versions and only `flake.lock` has changed, which one `git checkout` undoes. macOS goes last because its updates may need a restart.
+
+The resulting `flake.lock` diff is left uncommitted on purpose. Review and commit it, or the next `rebuild.sh` will not reproduce what is actually installed.
+
+| Option | Effect |
+| --- | --- |
+| `--gc [DAYS]` | After the switch, delete generations and store paths older than `DAYS` (default 30) |
+| `--no-macos` | Skip the macOS update step |
+| `--restart` | Let `softwareupdate` restart the Mac when an update requires it |
+
+Both scripts are also shell functions, `rebuild` and `upgrade`, defined in `modules/home/shell.nix`. They run from any directory and `rehash` afterwards so newly installed binaries are on `PATH` immediately. `generations` lists the system generations and `rollback_system` switches back to the previous one.
+
 Files under `home/` are linked directly into the home directory. Changes to those linked files usually take effect immediately and do not require a rebuild.
 
 ## Validation
@@ -174,7 +194,8 @@ for the password and then an MFA passcode on every connection.
 | `home/` | Configuration linked into the user home directory |
 | `patches/` | Checked patches for pinned upstream sources |
 | `bootstrap.sh` | First installation |
-| `rebuild.sh` | Subsequent system activation |
+| `rebuild.sh` | Subsequent system activation from the current pins |
+| `upgrade.sh` | Moves Nix pins, Homebrew packages, and macOS forward, then activates |
 | `check-skhd.sh` | skhd health and permission check |
 | `vpn.sh` | GlobalProtect VPN client over openconnect |
 
