@@ -72,7 +72,6 @@
       "colima"
       "docker"
       "sshpass"
-      "openconnect"
       "wget"
     ];
     casks = [
@@ -103,6 +102,7 @@
       "font-hack-nerd-font"
       "desktoppr"
       "tailscale-app"
+      "nordvpn"
       "onlyoffice"
     ] ++ lib.optionals workMachine [
       "webex"
