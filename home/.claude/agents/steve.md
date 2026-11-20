@@ -51,6 +51,8 @@ and is picky about the UI down to the pixel.
   - Its thread is parked while `lid_animation` is off.
   - The `lid_preview` request (`{"cmd":"lid_preview","percent":60}`, then
     `null`) shows any stage without moving the lid.
+- **Icon:** `app/Icon/icon.swift` draws it (a fan of swatches); the build
+  renders `AppIcon.icns`. Re-render `docs/icon.png` (256 px) when it changes.
 - **Log:** the daemon moves `~/Library/Logs/obojeno.log` to `.1` at 5 MB
   itself (`log_file.rs`), however it was started.
 - **Updates** (`app/Sources/Obojeno/Updater.swift`):
@@ -203,8 +205,7 @@ Re-measure after any change to image handling.
 - **Sparkle secret:** `SPARKLE_PRIVATE_KEY` has to be set before the next
   release, or the release workflow stops. Copies older than the first
   Sparkle release (0.1.4 and earlier) cannot update themselves.
-- **App icon:** there is none (a blank icon in Sparkle's window, in Finder,
-  and in the Dock with "Show in Dock" on).
+
 - **Not production-proven yet:**
   - Developer ID signing and notarization (needs the owner's Apple account).
   - Untested setups: external and multiple displays, Intel Macs, a fresh
