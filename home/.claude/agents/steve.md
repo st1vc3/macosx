@@ -53,6 +53,10 @@ and is picky about the UI down to the pixel.
     `null`) shows any stage without moving the lid.
 - **Icon:** `app/Icon/icon.swift` draws it (a fan of swatches); the build
   renders `AppIcon.icns`. Re-render `docs/icon.png` (256 px) when it changes.
+- **Home Manager module** (`nix/hm-module.nix`): `settings` are merged into
+  `config.toml` with the hidden `obojeno declare` (declared keys win, keys no
+  longer declared go, everything set in the app stays). Never write the file
+  from scratch: that once wiped the owner's lid, grain and radius settings.
 - **Log:** the daemon moves `~/Library/Logs/obojeno.log` to `.1` at 5 MB
   itself (`log_file.rs`), however it was started.
 - **Updates** (`app/Sources/Obojeno/Updater.swift`):
