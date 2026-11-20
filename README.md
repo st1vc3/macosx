@@ -62,7 +62,7 @@ Because the account name comes from the environment, `rebuild.sh` evaluates the
 flake with `--impure`. Pure evaluation, as in CI, falls back to the default
 account in `flake.nix`.
 
-macOS may request Accessibility access for AeroSpace, skhd, and Hammerspoon. Grant it under System Settings > Privacy & Security > Accessibility.
+macOS may request Accessibility access for AeroSpace, skhd, and Hammerspoon. Grant it under System Settings > Privacy & Security > Accessibility. Hammerspoon also needs Screen Recording (same place) to blur what is behind the shortcut overlay.
 
 ## Updating the machine
 
