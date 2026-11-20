@@ -13,6 +13,9 @@ in
 
   home.file.".claude/CLAUDE.md".source = liveLink "home/AGENTS.md";
 
+  # Steve, the agent for obojeno.
+  home.file.".claude/agents/steve.md".source = liveLink "home/.claude/agents/steve.md";
+
   home.file.".codex/AGENTS.md".source = liveLink "home/AGENTS.md";
 
   home.file.".config/opencode/AGENTS.md".source = liveLink "home/AGENTS.md";
