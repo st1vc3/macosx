@@ -140,7 +140,7 @@ local html = [[
     inset: 0;
     content: "";
     border-radius: inherit;
-    background: radial-gradient(circle at top, rgba(86, 31, 43, 0.94), rgba(18, 16, 20, 0.97) 36%);
+    background: radial-gradient(circle at top, rgba(86, 31, 43, 0.72), rgba(18, 16, 20, 0.8) 36%);
     -webkit-backdrop-filter: blur(150px) saturate(170%);
     backdrop-filter: blur(150px) saturate(170%);
   }
