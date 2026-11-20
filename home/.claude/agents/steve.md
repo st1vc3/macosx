@@ -53,6 +53,21 @@ and is picky about the UI down to the pixel.
     `null`) shows any stage without moving the lid.
 - **Log:** the daemon moves `~/Library/Logs/obojeno.log` to `.1` at 5 MB
   itself (`log_file.rs`), however it was started.
+- **Updates** (`app/Sources/Obojeno/Updater.swift`):
+  - Downloaded installs update with Sparkle; Homebrew and Nix installs only
+    get a hint (`InstallMethod`).
+  - Updates found in the background go to the banner ("gentle reminders");
+    Sparkle's window opens when asked or right after launch.
+  - The feed (`releases/latest/download/appcast.xml`) and each zip are
+    signed with an EdDSA key. The app requires a signed feed
+    (`SURequireSignedFeed`) and verifies before extracting.
+  - The public key is in `scripts/build-app.sh`; the private key is in the
+    owner's login Keychain (`generate_keys --account obojeno`) and in the
+    `SPARKLE_PRIVATE_KEY` secret. Never change the key: every installed
+    copy would stop updating.
+  - Sparkle moves the old bundle away, so after an update the old daemon
+    runs from Sparkle's cache. `DaemonSupervisor` remembers the daemon it
+    started (`daemonStarted` default) to replace it anyway.
 
 ## Memory rules (hard-won, keep them)
 
@@ -119,8 +134,28 @@ Re-measure after any change to image handling.
   4. Verify by downloading it: check the checksum, `--version`, both
      architectures, and `obojeno analyze` on a wallpaper.
 
-  Notarization and the cask update only run once their secrets
-  (`APPLE_*`, `TAP_TOKEN`) exist.
+  The release fails without `SPARKLE_PRIVATE_KEY`, which signs the update
+  and writes `appcast.xml` (`scripts/appcast.sh`). Notarization and the
+  cask update only run once their secrets (`APPLE_*`, `TAP_TOKEN`) exist.
+- **Testing an update end to end, before releasing:**
+  1. Build the old version with `FEED_URL=http://127.0.0.1:8787/appcast.xml`.
+  2. Build a newer one: bump `Cargo.toml` temporarily, then restore it and
+     `Cargo.lock`.
+  3. Zip it and write the feed with `scripts/appcast.sh`, using the key from
+     `generate_keys --account obojeno -x FILE` (delete the file after).
+  4. Serve the folder with `python3 -m http.server 8787 --bind 127.0.0.1`.
+  5. Install the old app in `/Applications` and set `SULastCheckTime` in the
+     past, so it checks at launch.
+  6. Click "Install Update", then "Install and Relaunch", through
+     `osascript` System Events.
+  7. Check the app and daemon versions, and that a tampered zip or feed is
+     refused.
+
+  The test copy shares preferences with the dev app (same bundle ID): export
+  them first. `defaults import` merges, so delete the added keys one by one.
+  Also clear `~/Library/Caches/io.github.st1vc3.obojeno/org.sparkle-project.Sparkle`.
+- **GNU sed:** inside `nix develop`, `sed` is GNU sed. Use `/usr/bin/sed -i ''`
+  for in-place edits.
 - **Cask:** `scripts/cask.sh VERSION SHA256` writes the cask, and
   `scripts/check-cask.sh` style-checks it. Test a real install from a local
   tap with `--appdir` set to a scratch folder. Uninstalling it quits the
@@ -165,6 +200,11 @@ Re-measure after any change to image handling.
 - **Homebrew tap:** the owner is creating `st1vc3/homebrew-tap` and the
   `TAP_TOKEN` secret. After that, verify
   `brew install --cask st1vc3/tap/obojeno` against the real tap.
+- **Sparkle secret:** `SPARKLE_PRIVATE_KEY` has to be set before the next
+  release, or the release workflow stops. Copies older than the first
+  Sparkle release (0.1.4 and earlier) cannot update themselves.
+- **App icon:** there is none (a blank icon in Sparkle's window, in Finder,
+  and in the Dock with "Show in Dock" on).
 - **Not production-proven yet:**
   - Developer ID signing and notarization (needs the owner's Apple account).
   - Untested setups: external and multiple displays, Intel Macs, a fresh
