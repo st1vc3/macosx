@@ -136,11 +136,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1795173704,
-        "narHash": "sha256-TCMQBLjAF3E0DqrVhqORvyryOlsdr9K/EsiVq/KB59w=",
+        "lastModified": 1795188318,
+        "narHash": "sha256-WeMgJHGZJyU9Fk+ifEIHndO/Kto4Nx7w+isPUQMTLUU=",
         "owner": "st1vc3",
         "repo": "obojeno",
-        "rev": "f9f609eae225452044d4910af284468a0708fb4d",
+        "rev": "2bb959518141322fd5e9ea2a9a9894f4984c2e8b",
         "type": "github"
       },
       "original": {
