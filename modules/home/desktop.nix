@@ -88,6 +88,12 @@ in
       kitty = { };
       starship = { };
       simple-bar.base = "${dotfiles}/home/.simplebarrc";
+      # The shortcut overlay (Hammerspoon) reads this file each time it opens.
+      hammerspoon-overlay = {
+        template = "${dotfiles}/home/.hammerspoon/overlay-theme.css";
+        output = "~/.cache/obojeno/hammerspoon-overlay.css";
+        reload = [ ];
+      };
     };
   };
 

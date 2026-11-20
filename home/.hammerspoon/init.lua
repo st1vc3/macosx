@@ -115,6 +115,17 @@ local html = [[
 <meta charset="utf-8">
 <style>
   * { box-sizing: border-box; }
+  /* Until obojeno has rendered its colors (overlay-theme.css). */
+  :root {
+    --text: #e8e6e3;
+    --key: #fff8f9;
+    --muted: #bdb7bd;
+    --accent: #ff4057;
+    --accent-rgb: 255, 64, 87;
+    --glow-rgb: 86, 31, 43;
+    --base-rgb: 18, 16, 20;
+    --line-rgb: 255, 255, 255;
+  }
   html, body {
     width: 100%;
     height: 100%;
@@ -128,8 +139,8 @@ local html = [[
     isolation: isolate;
     contain: paint;
     transform: translateZ(0);
-    color: #e8e6e3;
-    border: 1px solid rgba(255, 64, 87, 0.48);
+    color: var(--text);
+    border: 1px solid rgba(var(--accent-rgb), 0.48);
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -150,16 +161,16 @@ local html = [[
     inset: 0;
     content: "";
     border-radius: inherit;
-    background: radial-gradient(circle at top, rgba(86, 31, 43, 0.72), rgba(18, 16, 20, 0.8) 36%);
+    background: radial-gradient(circle at top, rgba(var(--glow-rgb), 0.72), rgba(var(--base-rgb), 0.8) 36%);
   }
   main { position: relative; z-index: 2; padding: 28px 32px 24px; }
   header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
   h1 { margin: 0; font-size: 25px; font-weight: 700; letter-spacing: -0.4px; }
-  header span { color: #aaa3aa; font-size: 13px; }
+  header span { color: var(--muted); font-size: 13px; }
   .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px 22px; }
   section { min-width: 0; }
   h2 {
-    color: #ff4057;
+    color: var(--accent);
     margin: 0 0 8px;
     font-size: 11px;
     font-weight: 750;
@@ -172,17 +183,18 @@ local html = [[
     align-items: center;
     gap: 10px;
     min-height: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.055);
+    border-top: 1px solid rgba(var(--line-rgb), 0.07);
   }
   kbd {
-    color: #fff8f9;
+    color: var(--key);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
     font-size: 12px;
     font-weight: 650;
     white-space: nowrap;
   }
-  .row span { color: #bdb7bd; font-size: 12px; line-height: 1.2; }
+  .row span { color: var(--muted); font-size: 12px; line-height: 1.2; }
 </style>
+<style>{{THEME}}</style>
 </head>
 <body>
 <div class="backdrop" style="background-image: url('{{BACKDROP}}')"></div>
@@ -224,10 +236,26 @@ local function backdrop(screen, frame)
   return snapshot:setSize({ w = frame.w / 4, h = frame.h / 4 }, true):encodeAsURLString(false, 'JPEG')
 end
 
+-- The colors obojeno renders from overlay-theme.css for the current
+-- wallpaper; the page's own colors apply until then.
+local themeFile = os.getenv('HOME') .. '/.cache/obojeno/hammerspoon-overlay.css'
+
+local function theme()
+  local file = io.open(themeFile, 'r')
+  if not file then
+    return ''
+  end
+  local css = file:read('a')
+  file:close()
+  return css
+end
+
 local function showOverlay()
   local screen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
   local frame = overlayFrame()
-  local content = page:gsub('{{BACKDROP}}', function() return backdrop(screen, frame) end)
+  local content = page
+    :gsub('{{THEME}}', function() return theme() end)
+    :gsub('{{BACKDROP}}', function() return backdrop(screen, frame) end)
   if not overlay then
     overlay = hs.webview.new(frame, {
       javaScriptEnabled = false,
