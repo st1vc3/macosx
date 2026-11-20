@@ -140,9 +140,9 @@ local html = [[
     inset: 0;
     content: "";
     border-radius: inherit;
-    background: radial-gradient(circle at top, rgba(86, 31, 43, 0.72), rgba(18, 16, 20, 0.8) 36%);
-    -webkit-backdrop-filter: blur(72px) saturate(160%);
-    backdrop-filter: blur(72px) saturate(160%);
+    background: radial-gradient(circle at top, rgba(86, 31, 43, 0.8), rgba(18, 16, 20, 0.86) 36%);
+    -webkit-backdrop-filter: blur(150px) saturate(170%);
+    backdrop-filter: blur(150px) saturate(170%);
   }
   main { position: relative; z-index: 1; padding: 28px 32px 24px; }
   header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
