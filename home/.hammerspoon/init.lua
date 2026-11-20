@@ -141,8 +141,8 @@ local html = [[
     content: "";
     border-radius: inherit;
     background: radial-gradient(circle at top, rgba(86, 31, 43, 0.72), rgba(18, 16, 20, 0.8) 36%);
-    -webkit-backdrop-filter: blur(28px) saturate(135%);
-    backdrop-filter: blur(28px) saturate(135%);
+    -webkit-backdrop-filter: blur(72px) saturate(160%);
+    backdrop-filter: blur(72px) saturate(160%);
   }
   main { position: relative; z-index: 1; padding: 28px 32px 24px; }
   header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
