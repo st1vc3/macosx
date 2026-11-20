@@ -134,17 +134,25 @@ local html = [[
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  body::before {
+  /* What is behind the panel, blurred like kitty's background. Drawn from
+     a snapshot: CSS backdrop-filter does not reliably blur other apps'
+     windows. Larger than the panel, so the blur has no faded edges. */
+  .backdrop {
     position: absolute;
     z-index: 0;
+    inset: -80px;
+    background: center / cover no-repeat;
+    filter: blur(40px) saturate(170%);
+  }
+  body::before {
+    position: absolute;
+    z-index: 1;
     inset: 0;
     content: "";
     border-radius: inherit;
     background: radial-gradient(circle at top, rgba(86, 31, 43, 0.72), rgba(18, 16, 20, 0.8) 36%);
-    -webkit-backdrop-filter: blur(150px) saturate(170%);
-    backdrop-filter: blur(150px) saturate(170%);
   }
-  main { position: relative; z-index: 1; padding: 28px 32px 24px; }
+  main { position: relative; z-index: 2; padding: 28px 32px 24px; }
   header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
   h1 { margin: 0; font-size: 25px; font-weight: 700; letter-spacing: -0.4px; }
   header span { color: #aaa3aa; font-size: 13px; }
@@ -177,6 +185,7 @@ local html = [[
 </style>
 </head>
 <body>
+<div class="backdrop" style="background-image: url('{{BACKDROP}}')"></div>
 <main>
   <header><h1>Keyboard shortcuts</h1><span>Release Option or Escape to close</span></header>
   <div class="grid">{{SECTIONS}}</div>
@@ -201,9 +210,26 @@ local function overlayFrame()
   }
 end
 
+local page = html:gsub('{{SECTIONS}}', function() return renderSections() end)
+
+-- The area `frame` covers, as a small JPEG data URL: the blur removes all
+-- detail, so a quarter of the size keeps the page light. Taken while the
+-- panel is hidden, so it shows what is behind it.
+local function backdrop(screen, frame)
+  local origin = screen:fullFrame()
+  local snapshot = screen:snapshot(hs.geometry.rect(frame.x - origin.x, frame.y - origin.y, frame.w, frame.h))
+  if not snapshot then
+    return ''
+  end
+  return snapshot:setSize({ w = frame.w / 4, h = frame.h / 4 }, true):encodeAsURLString(false, 'JPEG')
+end
+
 local function showOverlay()
+  local screen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+  local frame = overlayFrame()
+  local content = page:gsub('{{BACKDROP}}', function() return backdrop(screen, frame) end)
   if not overlay then
-    overlay = hs.webview.new(overlayFrame(), {
+    overlay = hs.webview.new(frame, {
       javaScriptEnabled = false,
       javaScriptCanOpenWindowsAutomatically = false,
       privateBrowsing = true,
@@ -213,11 +239,10 @@ local function showOverlay()
       :allowGestures(false)
       :transparent(true)
       :shadow(false)
-      :html((html:gsub('{{SECTIONS}}', function() return renderSections() end)))
   else
-    overlay:frame(overlayFrame())
+    overlay:frame(frame)
   end
-  overlay:show():bringToFront(true)
+  overlay:html(content):show():bringToFront(true)
 end
 
 local function hideOverlay()
