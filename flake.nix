@@ -19,9 +19,12 @@
 
     wallpaper.url = "git+ssh://git@github.com/st1vc3/wallpaper.git";
     wallpaper.flake = false;
+
+    # Its own nixpkgs: it needs a newer Rust than the stable channel has.
+    obojeno.url = "github:st1vc3/obojeno";
   };
 
-  outputs = inputs@{ self, nix-darwin, nix-homebrew, home-manager, nixpkgs, firefox-addons, simpleBar, wallpaper }:
+  outputs = inputs@{ self, nix-darwin, nix-homebrew, home-manager, nixpkgs, firefox-addons, simpleBar, wallpaper, obojeno }:
     let
       # The account name is machine-specific, so it comes from DOTFILES_USER,
       # which rebuild.sh exports from the untracked .env. Pure evaluation, as
@@ -43,6 +46,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
+            home-manager.sharedModules = [ obojeno.homeManagerModules.default ];
             home-manager.extraSpecialArgs = { inherit user firefox-addons simpleBar wallpaper; };
             home-manager.users.${user} = import ./home.nix;
           }

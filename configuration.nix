@@ -110,9 +110,13 @@
     ];
   };
 
+  # The initial wallpaper, until obojeno has set one (its state file exists
+  # from then on); after that, rebuilds keep whatever was picked.
   system.activationScripts.postActivation.text = ''
     uid=$(id -u ${user})
-    launchctl asuser "$uid" sudo -u ${user} /usr/local/bin/desktoppr "${wallpaper}/abstract/red.png" \
-      || echo "warning: desktoppr failed, wallpaper not set" >&2
+    if [ ! -e "/Users/${user}/.local/state/obojeno/state.json" ]; then
+      launchctl asuser "$uid" sudo -u ${user} /usr/local/bin/desktoppr "${wallpaper}/abstract/red.jpg" \
+        || echo "warning: desktoppr failed, wallpaper not set" >&2
+    fi
   '';
 }

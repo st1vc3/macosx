@@ -1,21 +1,16 @@
-{ config, lib, pkgs, simpleBar, wallpaper, ... }:
+{ config, lib, pkgs, simpleBar, ... }:
 
 let
   dotfiles = "${config.home.homeDirectory}/.dotfiles";
   liveLink = path: config.lib.file.mkOutOfStoreSymlink "${dotfiles}/${path}";
   # Ubersicht's page is fully transparent, so backdrop-filter has no backdrop to
-  # sample and renders non-deterministically. Bake a blurred copy of the
-  # wallpaper instead and let the bar composite it. Heavy blur is all low
-  # frequency, so a small downscaled JPEG upscales cleanly and stays tiny.
-  wallpaperBlur = pkgs.runCommand "simple-bar-wallpaper-blur.jpg"
-    { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
-    magick ${wallpaper}/abstract/red.png -resize 900x -blur 0x18 -quality 82 $out
-  '';
+  # sample and renders non-deterministically. The bar composites a blurred copy
+  # of the wallpaper instead, which obojeno renders on every wallpaper change.
   simpleBarWithNetworkAddress = pkgs.runCommand "simple-bar-with-network-address" { } ''
     cp -R ${simpleBar} $out
     chmod -R u+w $out
     patch --directory=$out --strip=1 --fuzz=0 < ${../../patches/simple-bar-network-address.patch}
-    cp ${wallpaperBlur} $out/wallpaper-blur.jpg
+    ln -s ${config.xdg.cacheHome}/obojeno/wallpaper-blur.jpg $out/wallpaper-blur.jpg
   '';
   uebersichtWidgetSettings = pkgs.writeText "uebersicht-widget-settings.json" (builtins.toJSON {
     "GettingStarted-jsx" = {
@@ -83,7 +78,18 @@ in
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/screenshots"
   '';
 
-  home.file.".simplebarrc".source = ../../home/.simplebarrc;
+  # Wallpaper-driven theming. ~/.simplebarrc is written by obojeno:
+  # home/.simplebarrc with the colors of the current wallpaper merged in.
+  programs.obojeno = {
+    enable = true;
+    integrations.starship = true;
+    settings.targets = {
+      borders = { };
+      kitty = { };
+      starship = { };
+      simple-bar.base = "${dotfiles}/home/.simplebarrc";
+    };
+  };
 
   home.file."Library/Application Support/Übersicht/widgets/simple-bar".source = simpleBarWithNetworkAddress;
 

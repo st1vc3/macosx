@@ -156,6 +156,9 @@
     };
   };
 
+  # obojeno merges these settings with colors from the wallpaper and points
+  # STARSHIP_CONFIG at the result (see desktop.nix); the named colors (red,
+  # cyan, ...) come from its palette.
   programs.starship = {
     enable = true;
     settings = {
